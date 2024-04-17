@@ -1,9 +1,12 @@
 package com.devkursat.springbootemaillistener.utils;
 
+import javax.mail.Address;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.Part;
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class Utils {
@@ -40,5 +43,31 @@ public class Utils {
         }
 
         return null;
+    }
+
+    public static String getSenderName(Address[] from) {
+        String fromString = from[0].toString();
+        if (fromString == null) return null;
+
+        String namePattern = "\"(.*?)\"";
+
+        Pattern nameRegex = Pattern.compile(namePattern);
+        Matcher nameMatcher = nameRegex.matcher(fromString);
+
+        if (nameMatcher.find()) return nameMatcher.group(1);
+        else return null;
+    }
+
+    public static String getSenderEmail(Address[] from) {
+        String fromString = from[0].toString();
+        if (fromString == null) return null;
+
+        String emailPattern = "<(.*?)>";
+
+        Pattern emailRegex = Pattern.compile(emailPattern);
+        Matcher emailMatcher = emailRegex.matcher(fromString);
+
+        if (emailMatcher.find()) return emailMatcher.group(1);
+        else return null;
     }
 }

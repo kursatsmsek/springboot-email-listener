@@ -1,30 +1,33 @@
 package com.devkursat.springbootemaillistener.config;
 
+import com.devkursat.springbootemaillistener.model.IncomingEmail;
+import com.devkursat.springbootemaillistener.repository.IncomingMailRepository;
 import com.devkursat.springbootemaillistener.utils.Utils;
 import com.sun.mail.imap.IMAPFolder;
 
 import javax.mail.*;
 import javax.mail.event.MessageCountAdapter;
 import javax.mail.event.MessageCountEvent;
-import javax.mail.internet.MimeMultipart;
-import java.io.IOException;
 
 public class EmailListener {
-    private Session session;
-    private String username;
-    private String password;
+    private final Session session;
+    private final String username;
+    private final String password;
 
-    public EmailListener(Session session, String username, String password) {
+    private final IncomingMailRepository incomingMailRepository;
+
+    public EmailListener(Session session, String username, String password, IncomingMailRepository incomingMailRepository) {
         this.session = session;
         this.username = username;
         this.password = password;
+        this.incomingMailRepository = incomingMailRepository;
     }
 
     public void startListening() throws MessagingException {
         Store store = session.getStore("imaps");
         store.connect(username, password);
 
-        IMAPFolder inbox = (IMAPFolder)store.getFolder("INBOX");
+        IMAPFolder inbox = (IMAPFolder) store.getFolder("INBOX");
         inbox.open(Folder.READ_WRITE);
 
         // Create a new thread to keep the connection alive
@@ -39,18 +42,18 @@ public class EmailListener {
                 for (Message message : messages) {
                     try {
                         // Implement your email processing logic here
-                        System.out.println("New email received");
-                        System.out.println("subject => " + message.getSubject());
-                        System.out.println("description => " + message.getDescription());
-                        System.out.println("content => " + message.getContent());
-                        System.out.println("contentType => " + message.getContentType());
-                        System.out.println("folder => " + message.getFolder());
-                        System.out.println("message number => " + message.getMessageNumber());
-                        System.out.println("disposition => " + message.getDisposition());
-                        System.out.println("file name => " + message.getFileName());
-                        System.out.println("session => " + message.getSession().toString());
-                        System.out.println("flags => " + message.getFlags());
-                        System.out.println("text => " + Utils.getTextFromEmailMessage(message));
+
+                        IncomingEmail incomingEmail = new IncomingEmail(
+                                message.getSubject(),
+                                message.getContentType(),
+                                message.getFolder().toString(),
+                                Utils.getTextFromEmailMessage(message),
+                                Utils.getSenderName(message.getFrom()),
+                                Utils.getSenderEmail(message.getFrom()),
+                                message.getReceivedDate()
+                        );
+                        incomingMailRepository.save(incomingEmail);
+                        System.out.println(incomingEmail);
                     } catch (Exception e) {
                         System.err.println(e.getMessage());
                     }

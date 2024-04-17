@@ -4,7 +4,7 @@ import com.sun.mail.imap.IMAPFolder;
 
 public class KeepAliveRunnable implements Runnable {
     private static final long KEEP_ALIVE_FREQ = 300000; // 5 minutes
-    private IMAPFolder folder;
+    private final IMAPFolder folder;
     public KeepAliveRunnable(IMAPFolder folder) {
         this.folder = folder;
     }
